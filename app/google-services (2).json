@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "236293435537",
+    "firebase_url": "https://trip-journal-4f461.firebaseio.com",
+    "project_id": "trip-journal-4f461",
+    "storage_bucket": "trip-journal-4f461.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:236293435537:android:90f0a5e9f551f6c1",
+        "android_client_info": {
+          "package_name": "com.elenaneacsu.tripjournal"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "236293435537-g8i2tr29uooau7ukqs7hbdk2q21mt22e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAr7onO1wY-SELgc0V0oSk1ugldgafKqDY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

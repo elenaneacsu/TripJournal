@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="@dimen/size_16"
+        android:layout_marginRight="@dimen/size_16"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/textview_tripname"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/size_16"
+            android:text="@string/trip_name"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/edittext_tripname"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/ic_info_outline_black_24dp" />
+
+        <TextView
+            android:id="@+id/textview_destination"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/size_16"
+            android:text="@string/destination"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/edittext_destination"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/ic_outline_outlined_flag_24px" />
+
+        <TextView
+            android:id="@+id/textview_triptype"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/size_16"
+            android:text="@string/trip_type"
+            android:textStyle="bold" />
+
+        <RadioGroup
+            android:id="@+id/radiogroup_triptype"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/radiobutton_citybreak"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/city_break" />
+
+            <RadioButton
+                android:id="@+id/radiobutton_seaside"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/seaside" />
+
+            <RadioButton
+                android:id="@+id/radiobutton_mountains"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/mountains" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/textview_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/size_16"
+            android:text="@string/price_eur"
+            android:textStyle="bold" />
+
+        <SeekBar
+            android:id="@+id/seekbar_price"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="5000"
+            android:progress="300" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/textview_startdate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/size_16"
+                android:layout_weight="1"
+                android:text="@string/start_date"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textview_enddate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/size_16"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/end_date"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/btn_startdate"
+                style="@style/ManageButtons"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/dd_mm_yyyy"
+                android:onClick="selectStartDate"/>
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.8" />
+
+            <Button
+                android:id="@+id/btn_enddate"
+                style="@style/ManageButtons"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/dd_mm_yyyy"
+                android:onClick="selectEndDate"/>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/textview_rating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/size_16"
+            android:text="@string/rating"
+            android:textStyle="bold" />
+
+        <RatingBar
+            android:id="@+id/ratingbar_trip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:stepSize="0.5" />
+
+        <TextView
+            android:id="@+id/textview_photo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_16"
+            android:text="@string/upload_photo"
+            android:textStyle="bold" />
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/btn_fromcamera"
+                style="@style/ManageButtons"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/choose_from_camera" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.8" />
+
+            <Button
+                android:id="@+id/btn_fromgallery"
+                style="@style/ManageButtons"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/choose_from_gallery" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_marginTop="@dimen/space_16"
+            android:layout_gravity="center"
+            android:id="@+id/imageview_selectedpicture"/>
+
+        <Button
+            android:id="@+id/btn_savetrip"
+            style="@style/ManageButtons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_16"
+            android:layout_marginBottom="@dimen/space_16"
+            android:onClick="btnSaveTripOnClick"
+            android:text="@string/save" />
+
+    </LinearLayout>
+
+</ScrollView>
