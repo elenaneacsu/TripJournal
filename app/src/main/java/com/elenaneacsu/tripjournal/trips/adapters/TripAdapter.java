@@ -1,6 +1,5 @@
 package com.elenaneacsu.tripjournal.trips.adapters;
 
-import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -10,9 +9,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.elenaneacsu.tripjournal.R;
-import com.elenaneacsu.tripjournal.trips.activities.ManageTripActivity;
 import com.elenaneacsu.tripjournal.trips.entities.Trip;
-import com.elenaneacsu.tripjournal.trips.fragments.TripListFragment;
+import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -21,8 +19,8 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
 
     private List<Trip> mTrips;
 
-    public TripAdapter(List<Trip> trips) {
-        mTrips = trips;
+    public TripAdapter(List<Trip> tripList) {
+        this.mTrips = tripList;
     }
 
     @NonNull
@@ -43,10 +41,10 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
 
     @Override
     public int getItemCount() {
-        return mTrips==null ? 0 : mTrips.size();
+        return mTrips == null ? 0 : mTrips.size();
     }
 
-    public class TripViewHolder extends RecyclerView.ViewHolder{
+    public class TripViewHolder extends RecyclerView.ViewHolder {
 
         public ImageView mImageViewTrip;
         public TextView mTextviewTripName;

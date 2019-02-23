@@ -119,39 +119,39 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        TripListFragment fragment = new TripListFragment();
-        Bundle bundle = new Bundle();
-        if (requestCode == 1) {
-            if (resultCode == Activity.RESULT_OK) {
-                Trip trip = data.getParcelableExtra(Constants.TRIP_OBJECT);
-                String flag = data.getStringExtra(Constants.FLAG);
-                if (flag.equalsIgnoreCase("add")) {
-                    bundle.putParcelable(Constants.TRIP_OBJECT, trip);
-                    bundle.putString(Constants.FLAG, "add");
-                    fragment.setArguments(bundle);
-                    initFragment(fragment);
-                }
-            }
-        }
-        if (requestCode == 0) {
-            if (resultCode == Activity.RESULT_OK) {
-                Trip trip = data.getParcelableExtra(Constants.TRIP_OBJECT);
-                String flag = data.getStringExtra(Constants.FLAG);
-                int position = data.getIntExtra(Constants.POSITION, -1);
-                if (flag.equalsIgnoreCase("update")) {
-                    if (position > -1) {
-                        bundle.putParcelable(Constants.TRIP_OBJECT, trip);
-                        bundle.putString(Constants.FLAG, "update");
-                        bundle.putInt(Constants.POSITION, position);
-                        fragment.setArguments(bundle);
-                        initFragment(fragment);
-                    }
-                }
-            }
-        }
-    }
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+//        TripListFragment fragment = new TripListFragment();
+//        Bundle bundle = new Bundle();
+//        if (requestCode == 1) {
+//            if (resultCode == Activity.RESULT_OK) {
+//                Trip trip = data.getParcelableExtra(Constants.TRIP_OBJECT);
+//                String flag = data.getStringExtra(Constants.FLAG);
+//                if (flag.equalsIgnoreCase("add")) {
+//                    bundle.putParcelable(Constants.TRIP_OBJECT, trip);
+//                    bundle.putString(Constants.FLAG, "add");
+//                    fragment.setArguments(bundle);
+//                    initFragment(fragment);
+//                }
+//            }
+//        }
+//        if (requestCode == 0) {
+//            if (resultCode == Activity.RESULT_OK) {
+//                Trip trip = data.getParcelableExtra(Constants.TRIP_OBJECT);
+//                String flag = data.getStringExtra(Constants.FLAG);
+//                int position = data.getIntExtra(Constants.POSITION, -1);
+//                if (flag.equalsIgnoreCase("update")) {
+//                    if (position > -1) {
+//                        bundle.putParcelable(Constants.TRIP_OBJECT, trip);
+//                        bundle.putString(Constants.FLAG, "update");
+//                        bundle.putInt(Constants.POSITION, position);
+//                        fragment.setArguments(bundle);
+//                        initFragment(fragment);
+//                    }
+//                }
+//            }
+//        }
+//    }
 
 
     private void initFragment(Fragment fragment) {

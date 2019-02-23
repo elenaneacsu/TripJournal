@@ -3,22 +3,26 @@ package com.elenaneacsu.tripjournal.trips.entities;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import java.util.Calendar;
-
 public class Trip implements Parcelable {
-    public enum TripType {Mountains, Seaside, City_Break};
+
+    public enum TripType {Mountains, Seaside, City_Break;}
 
     private String name;
+
     private String destination;
     private TripType type;
-    private double price;
-    private Calendar startDate;
-    private Calendar endDate;
-    private float rating;
+    private long price;
+    private long startDate;
+    private long endDate;
+    private long rating;
     private String image;
     private boolean isFavourite;
 
-    public Trip(String name, String destination, TripType type, double price, Calendar startDate, Calendar endDate, float rating, String image, boolean isFavourite) {
+    public Trip() {
+
+    }
+
+    public Trip(String name, String destination, TripType type, long price, long startDate, long endDate, long rating, String image, boolean isFavourite) {
         this.name = name;
         this.destination = destination;
         this.type = type;
@@ -30,7 +34,7 @@ public class Trip implements Parcelable {
         this.isFavourite = isFavourite;
     }
 
-    public Trip(String name, String destination, TripType tripType, double price, Calendar startDate, Calendar endDate, float rating, String image) {
+    public Trip(String name, String destination, TripType tripType, long price, long startDate, long endDate, long rating, String image) {
         this.name = name;
         this.destination = destination;
         this.type = tripType;
@@ -41,7 +45,7 @@ public class Trip implements Parcelable {
         this.image = image;
     }
 
-    public Trip(String name, String destination, double price, float rating, String image) {
+    public Trip(String name, String destination, long price, long rating, String image) {
         this.name = name;
         this.destination = destination;
         this.price = price;
@@ -49,7 +53,7 @@ public class Trip implements Parcelable {
         this.image = image;
     }
 
-    public Trip(String name, String destination, TripType type, double price, Calendar startDate, Calendar endDate, float rating) {
+    public Trip(String name, String destination, TripType type, long price, long startDate, long endDate, long rating) {
         this.name = name;
         this.destination = destination;
         this.type = type;
@@ -83,35 +87,35 @@ public class Trip implements Parcelable {
         this.type = tripType;
     }
 
-    public double getPrice() {
+    public long getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(long price) {
         this.price = price;
     }
 
-    public Calendar getStartDate() {
+    public long getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Calendar startDate) {
+    public void setStartDate(long startDate) {
         this.startDate = startDate;
     }
 
-    public Calendar getEndDate() {
+    public long getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Calendar endDate) {
+    public void setEndDate(long endDate) {
         this.endDate = endDate;
     }
 
-    public float getRating() {
+    public long getRating() {
         return rating;
     }
 
-    public void setRating(float rating) {
+    public void setRating(long rating) {
         this.rating = rating;
     }
 
@@ -129,10 +133,10 @@ public class Trip implements Parcelable {
         name = in.readString();
         destination = in.readString();
         type = (TripType) in.readValue(TripType.class.getClassLoader());
-        price = in.readDouble();
-        startDate = (Calendar) in.readValue(Calendar.class.getClassLoader());
-        endDate = (Calendar) in.readValue(Calendar.class.getClassLoader());
-        rating = in.readFloat();
+        price = in.readLong();
+        startDate = in.readLong();
+        endDate = in.readLong();
+        rating = in.readLong();
         image = in.readString();
         isFavourite = in.readByte() != 0x00;
     }
@@ -147,10 +151,10 @@ public class Trip implements Parcelable {
         dest.writeString(name);
         dest.writeString(destination);
         dest.writeValue(type);
-        dest.writeDouble(price);
-        dest.writeValue(startDate);
-        dest.writeValue(endDate);
-        dest.writeFloat(rating);
+        dest.writeLong(price);
+        dest.writeLong(startDate);
+        dest.writeLong(endDate);
+        dest.writeLong(rating);
         dest.writeString(image);
         dest.writeByte((byte) (isFavourite ? 0x01 : 0x00));
     }
@@ -167,4 +171,19 @@ public class Trip implements Parcelable {
             return new Trip[size];
         }
     };
+
+    @Override
+    public String toString() {
+        return "Trip{" +
+                "name='" + name + '\'' +
+                ", destination='" + destination + '\'' +
+                ", type=" + type +
+                ", price=" + price +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate +
+                ", rating=" + rating +
+                ", image='" + image + '\'' +
+                ", isFavourite=" + isFavourite +
+                '}';
+    }
 }

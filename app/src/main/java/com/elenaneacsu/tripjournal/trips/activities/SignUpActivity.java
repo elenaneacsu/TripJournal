@@ -92,8 +92,9 @@ public class SignUpActivity extends AppCompatActivity {
 
     private void initialiseUser() {
         String name = mEditTextName.getText().toString();
-        databaseReference.child("USERS").child(firebaseAuth.getUid()).child("name").setValue(name);
-        databaseReference.child("USERS").child(firebaseAuth.getUid()).child("noTrips").setValue(0);
+        DatabaseReference userReference = databaseReference.child("USERS").child(firebaseAuth.getUid());
+        userReference.child("name").setValue(name);
+        userReference.child("noTrips").setValue(0);
     }
 
     public void switchToLogin(View view) {

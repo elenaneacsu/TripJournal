@@ -1,7 +1,6 @@
 package com.elenaneacsu.tripjournal.trips.fragments;
 
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -13,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.elenaneacsu.tripjournal.R;
 import com.elenaneacsu.tripjournal.trips.activities.ManageTripActivity;
@@ -21,6 +21,14 @@ import com.elenaneacsu.tripjournal.trips.adapters.TripAdapter;
 import com.elenaneacsu.tripjournal.trips.adapters.TripClickListener;
 import com.elenaneacsu.tripjournal.trips.entities.Trip;
 import com.elenaneacsu.tripjournal.utils.Constants;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,58 +39,53 @@ import java.util.List;
 public class TripListFragment extends Fragment {
 
     private RecyclerView mRecyclerViewTrips;
-    private List<Trip> mTripList = new ArrayList<>();
+    private List<Trip> mTripList;
+    private TripAdapter mTripAdapter;
+
+    private DatabaseReference mDatabaseReference;
+    private FirebaseAuth mFirebaseAuth;
+    private FirebaseStorage mFirebaseStorage;
+
+    private ValueEventListener mValueEventListener;
+    private DatabaseReference mUserReference;
+    private List<StorageReference> mStorageReferences;
+
 
     public TripListFragment() {
         // Required empty public constructor
     }
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mFirebaseAuth = FirebaseAuth.getInstance();
+        mDatabaseReference = FirebaseDatabase.getInstance().getReference();
+        mFirebaseStorage = FirebaseStorage.getInstance();
+
+        mTripList = new ArrayList<>();
+        mStorageReferences = new ArrayList<>();
+    }
 
     @Override
     public View onCreateView(final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.fragment_trip_list, container, false);
-        mRecyclerViewTrips = rootView.findViewById(R.id.recyclerview_trips);
+        return inflater.inflate(R.layout.fragment_trip_list, container, false);
+    }
 
 
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        mRecyclerViewTrips = view.findViewById(R.id.recyclerview_trips);
 
-//        Bundle bundle = getActivity().getIntent().getExtras();
-//        if(bundle != null) {
-//            Trip trip = bundle.getParcelable(Constants.TRIP_OBJECT);
-//            String flag = bundle.getString(Constants.FLAG);
-//            if(flag!=null) {
-//                if(flag.equals("update")) {
-//                    int position = bundle.getInt(Constants.POSITION);
-//                    mTripList.remove(position);
-//                    mTripList.add(position, trip);
-//                }
-//            } else {
-//                mTripList.add(trip);
-//            }
-//        }
+        getAllTrips();
 
-        if(getArguments()!=null) {
-            Trip trip = getArguments().getParcelable(Constants.TRIP_OBJECT);
-            String flag = getArguments().getString(Constants.FLAG);
-            if(flag.equalsIgnoreCase("add")) {
-                mTripList.add(trip);
-            } else if(flag.equalsIgnoreCase("update")) {
-                int position = getArguments().getInt(Constants.POSITION);
-                mTripList.remove(position);
-                mTripList.add(position, trip);
-            }
-        }
-
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
-        mRecyclerViewTrips.setLayoutManager(layoutManager);
-        TripAdapter adapter = new TripAdapter(mTripList);
-        mRecyclerViewTrips.setAdapter(adapter);
 
         mRecyclerViewTrips.addOnItemTouchListener(new RecyclerTouchListener(getActivity(), mRecyclerViewTrips, new TripClickListener() {
             @Override
             public void onClick(View view, int position) {
-
+                //todo vizualizare FRD+FST
             }
 
             @Override
@@ -98,47 +101,55 @@ public class TripListFragment extends Fragment {
                 intent.putExtra(Constants.TRIP_END_DATE, selectedTrip.getEndDate());
                 intent.putExtra(Constants.FLAG, "update");
                 intent.putExtra(Constants.POSITION, position);
-                Log.d("oaie", "onLongClick: position "+position);
+                Log.d("oaie", "onLongClick: position " + position);
                 Log.d("oaie", "onLongClick: flag update");
                 startActivityForResult(intent, 0);
             }
         }));
-
-        return rootView;
     }
 
-//    @Override
-//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        if(requestCode == 0) {
-//            if(resultCode == Activity.RESULT_OK) {
-//                Trip trip = data.getParcelableExtra(Constants.TRIP_OBJECT);
-//                String flag = data.getStringExtra(Constants.FLAG);
-//                int position = data.getIntExtra(Constants.POSITION, -1);
-//                if(flag.equalsIgnoreCase("update")) {
-//                    if(position>-1) {
-//                        mTripList.remove(position);
-//                        mTripList.add(position, trip);
-//                    }
-//                } else if(flag.equalsIgnoreCase("add")) {
-//                    mTripList.add(trip);
-//                }
-//            }
-//        }
-//    }
+    private void getAllTrips() {
+        mUserReference = mDatabaseReference.child("USERS").child(mFirebaseAuth.getCurrentUser().getUid());
+        mValueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                long noTrips = (long) dataSnapshot.child("noTrips").getValue();
+                if (noTrips == 0) {
+                    Toast.makeText(getActivity(), "No trips", Toast.LENGTH_SHORT).show();
+                } else {
+                    DataSnapshot tripsDataSnapshot = dataSnapshot.child("trips");
+                    for (DataSnapshot tripDataSnapshot : tripsDataSnapshot.getChildren()) {
+                        Trip trip = new Trip();
+                        trip.setName((String) tripDataSnapshot.child("name").getValue());
+                        trip.setDestination((String) tripDataSnapshot.child("destination").getValue());
+                        trip.setType(Trip.TripType.valueOf((String) tripDataSnapshot.child("type").getValue()));
+                        trip.setStartDate((Long) tripDataSnapshot.child("startDate").getValue());
+                        trip.setEndDate((Long) tripDataSnapshot.child("endDate").getValue());
+                        trip.setRating((Long) tripDataSnapshot.child("rating").getValue());
+                        trip.setPrice((Long) tripDataSnapshot.child("price").getValue());
+                        trip.setImage((String) tripDataSnapshot.child("img").getValue());
+                        mTripList.add(trip);
+                    }
+                }
+
+                RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
+                mRecyclerViewTrips.setLayoutManager(layoutManager);
+                mTripAdapter = new TripAdapter(mTripList);
+                mRecyclerViewTrips.setAdapter(mTripAdapter);
+                mTripAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
+        mUserReference.addValueEventListener(mValueEventListener);
+    }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    public void onPause() {
+        super.onPause();
+        mUserReference.removeEventListener(mValueEventListener);
     }
-
-//    private List<Trip> getTrips() {
-//        List<Trip> trips = new ArrayList<>();
-//        trips.add(new Trip("Holiday 2017", "Islands", 0.0, 0,"https://upload.wikimedia.org/wikipedia/commons/5/58/Fernando_noronha.jpg"));
-//        trips.add(new Trip("Fall 2017", "Rome",0.0, 0, "https://cdn.fodors.com/wp-content/uploads/2018/10/HERO_UltimateRome_Hero_shutterstock789412159.jpg"));
-//        trips.add(new Trip("Summer 2017", "London",0.0, 0, "https://cdn.londonandpartners.com/visit/general-london/areas/river/76709-640x360-houses-of-parliament-and-london-eye-on-thames-from-above-640.jpg"));
-//        trips.add(new Trip("Winter 2017", "Paris", 0.0, 0, "http://www.parisclassictour.com/wcms/img/-size-16957-900-600.jpg"));
-//
-//        return trips;
-//    }
-
 }

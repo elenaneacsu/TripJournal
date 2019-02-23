@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
@@ -29,10 +30,19 @@ import android.widget.SeekBar;
 import android.widget.Toast;
 
 import com.elenaneacsu.tripjournal.R;
-import com.elenaneacsu.tripjournal.trips.entities.Trip;
 import com.elenaneacsu.tripjournal.trips.entities.Trip.TripType;
 import com.elenaneacsu.tripjournal.trips.fragments.DatePickerFragment;
 import com.elenaneacsu.tripjournal.utils.Constants;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -43,7 +53,6 @@ import java.util.Date;
 import java.util.Locale;
 
 import static com.elenaneacsu.tripjournal.utils.Constants.CAPTURE_IMAGE_REQUEST;
-import static com.elenaneacsu.tripjournal.utils.Constants.SELECT_IMAGE_REQUEST;
 
 public class ManageTripActivity extends AppCompatActivity {
 
@@ -64,15 +73,22 @@ public class ManageTripActivity extends AppCompatActivity {
     private String name;
     private String destination;
     private TripType type;
-    private double price;
-    private float rating;
-    private Calendar startDate;
-    private Calendar endDate;
+    private long price;
+    private long rating;
+    private long startDate;
+    private long endDate;
     private int position;
     private String flag;
     private File photoFile = null;
     String mCurrentPhotoPath;
     private byte[] photo;
+
+    private DatabaseReference mDatabaseReference;
+    private FirebaseAuth mFirebaseAuth;
+    private FirebaseStorage mFirebaseStorage;
+
+    private long noTrips;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,20 +97,9 @@ public class ManageTripActivity extends AppCompatActivity {
 
         initView();
 
-        Bundle bundle = getIntent().getExtras();
-        if (bundle != null) {
-            name = bundle.getString(Constants.TRIP_NAME);
-            destination = bundle.getString(Constants.TRIP_DESTINATION);
-            type = (TripType) bundle.get(Constants.TRIP_TYPE);
-            price = bundle.getDouble(Constants.TRIP_PRICE);
-            rating = bundle.getFloat(Constants.TRIP_RATING);
-            startDate = (Calendar) bundle.getSerializable(Constants.TRIP_START_DATE);
-            endDate = (Calendar) bundle.getSerializable(Constants.TRIP_END_DATE);
-            position = bundle.getInt(Constants.POSITION);
-            flag = bundle.getString(Constants.FLAG);
-
-            setValuesFromBundle();
-        }
+        mFirebaseAuth = FirebaseAuth.getInstance();
+        mDatabaseReference = FirebaseDatabase.getInstance().getReference();
+        mFirebaseStorage = FirebaseStorage.getInstance();
 
         mButtonCaptureImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -255,7 +260,7 @@ public class ManageTripActivity extends AppCompatActivity {
             myBitmap.compress(Bitmap.CompressFormat.JPEG, 0, outputStream);
             photo = outputStream.toByteArray();
             mImageViewSelectedImage.setImageBitmap(myBitmap);
-        } else if(requestCode == Constants.SELECT_IMAGE_REQUEST && resultCode == RESULT_OK) {
+        } else if (requestCode == Constants.SELECT_IMAGE_REQUEST && resultCode == RESULT_OK) {
             mImageViewSelectedImage.setImageURI(data.getData());
             Bitmap myBitmap = BitmapFactory.decodeFile(data.getData().toString());
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -266,22 +271,7 @@ public class ManageTripActivity extends AppCompatActivity {
         }
     }
 
-
-    private void setValuesFromBundle() {
-        mEditTextTripName.setText(name);
-        mEditTextDestination.setText(destination);
-        if (type == TripType.City_Break) {
-            mRadioButtonCityBreak.setChecked(true);
-        } else if (type == TripType.Mountains) {
-            mRadioButtonMountains.setChecked(true);
-        } else {
-            mRadioButtonSeaside.setChecked(true);
-        }
-        mRatingBar.setRating(rating);
-        mSeekBarPrice.setProgress((int) price);
-    }
-
-    private Trip getValuesFromFields() {
+    private void getValuesFromFields() {
         name = mEditTextTripName.getText().toString();
         destination = mEditTextDestination.getText().toString();
         if (mRadioButtonMountains.isChecked()) {
@@ -291,19 +281,57 @@ public class ManageTripActivity extends AppCompatActivity {
         } else {
             type = TripType.Seaside;
         }
-        rating = mRatingBar.getRating();
+        rating = (long) mRatingBar.getRating();
         price = mSeekBarPrice.getProgress();
 
-        return new Trip(name, destination, type, price, startDate, endDate, rating);
     }
 
     public void btnSaveTripOnClick(View view) {
         if (isValidDestination() && isValidTripName() && isValidTripType()) {
-            Trip trip = getValuesFromFields();
+            getValuesFromFields();
+            DatabaseReference userReference = mDatabaseReference.child("USERS")
+                    .child(mFirebaseAuth.getCurrentUser().getUid());
+            userReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    noTrips = (long) dataSnapshot.child("noTrips").getValue();
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+            noTrips++;
+
+            final DatabaseReference tripReference = userReference.child("trips").child("trip_" + noTrips);
+
+            final StorageReference imgStorageReference = mFirebaseStorage.getReference().child("USERS")
+                    .child(mFirebaseAuth.getUid()).child("img");
+
+            UploadTask uploadTask = imgStorageReference.putBytes(photo);
+            uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    imgStorageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                        @Override
+                        public void onSuccess(Uri uri) {
+                            tripReference.child("img").setValue(uri.toString());
+                        }
+                    });
+                }
+            });
+            userReference.child("noTrips").setValue(noTrips);
+            tripReference.child("name").setValue(name);
+            tripReference.child("destination").setValue(destination);
+            tripReference.child("price").setValue(price);
+            tripReference.child("rating").setValue(rating);
+            tripReference.child("startDate").setValue(startDate);
+            tripReference.child("endDate").setValue(endDate);
+            tripReference.child("type").setValue(type);
+
+
             Intent intent = new Intent(ManageTripActivity.this, MainActivity.class);
-            intent.putExtra(Constants.TRIP_OBJECT, trip);
-            intent.putExtra(Constants.POSITION, position);
-            intent.putExtra(Constants.FLAG, flag);
             setResult(Activity.RESULT_OK, intent);
             finish();
 
@@ -343,20 +371,21 @@ public class ManageTripActivity extends AppCompatActivity {
     public void selectStartDate(View view) {
         DialogFragment newFragment = new DatePickerFragment();
         newFragment.show(getSupportFragmentManager(), getString(R.string.select_start_date));
-        startDate = Calendar.getInstance();
-        startDate.set(((DatePickerFragment) newFragment).getSelectedYear(),
-                ((DatePickerFragment) newFragment).getSelectedMonth(),
-                ((DatePickerFragment) newFragment).getSelectedDay());
+        startDate = Calendar.getInstance().getTimeInMillis();
+
+//        startDate.set(((DatePickerFragment) newFragment).getSelectedYear(),
+//                ((DatePickerFragment) newFragment).getSelectedMonth(),
+//                ((DatePickerFragment) newFragment).getSelectedDay());
     }
 
 
     public void selectEndDate(View view) {
         DialogFragment newFragment = new DatePickerFragment();
         newFragment.show(getSupportFragmentManager(), getString(R.string.select_end_date));
-        endDate = Calendar.getInstance();
-        endDate.set(((DatePickerFragment) newFragment).getSelectedYear(),
-                ((DatePickerFragment) newFragment).getSelectedMonth(),
-                ((DatePickerFragment) newFragment).getSelectedDay());
+        endDate = Calendar.getInstance().getTimeInMillis();
+//        endDate.set(((DatePickerFragment) newFragment).getSelectedYear(),
+//                ((DatePickerFragment) newFragment).getSelectedMonth(),
+//                ((DatePickerFragment) newFragment).getSelectedDay());
     }
 
     private void displayMessage(Context context, String message) {
