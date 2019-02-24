@@ -36,6 +36,8 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
         Trip trip = mTrips.get(i);
         tripViewHolder.mTextviewTripName.setText(trip.getName());
         tripViewHolder.mTextViewTripDestination.setText(trip.getDestination());
+        tripViewHolder.mTextViewTripRating.setText(String.valueOf(trip.getRating()));
+        tripViewHolder.mTextViewTripPrice.setText(String.valueOf(trip.getPrice()));
         Picasso.get().load(trip.getImage()).into(tripViewHolder.mImageViewTrip);
     }
 

@@ -88,6 +88,7 @@ public class ManageTripActivity extends AppCompatActivity {
     private FirebaseStorage mFirebaseStorage;
 
     private long noTrips;
+    private boolean updateTrip;
 
 
     @Override
@@ -127,6 +128,21 @@ public class ManageTripActivity extends AppCompatActivity {
                 }
             }
         });
+
+        Bundle bundle = getIntent().getExtras();
+        if (bundle != null) {
+            name = bundle.getString(Constants.TRIP_NAME);
+            destination = bundle.getString(Constants.TRIP_DESTINATION);
+            price = bundle.getLong(Constants.TRIP_PRICE);
+            rating = bundle.getLong(Constants.TRIP_RATING);
+            startDate = bundle.getLong(Constants.TRIP_START_DATE);
+            endDate = bundle.getLong(Constants.TRIP_END_DATE);
+            type = TripType.valueOf(bundle.getString(Constants.TRIP_TYPE));
+            updateTrip = bundle.getBoolean(Constants.UPDATE);
+            position = bundle.getInt(Constants.POSITION);
+
+            setValuesFromBundle();
+        }
     }
 
     private void initView() {
@@ -286,49 +302,74 @@ public class ManageTripActivity extends AppCompatActivity {
 
     }
 
+    private void setValuesFromBundle() {
+        mEditTextTripName.setText(name);
+        mEditTextDestination.setText(destination);
+        if (type == TripType.City_Break) {
+            mRadioButtonCityBreak.setChecked(true);
+        } else if (type == TripType.Mountains) {
+            mRadioButtonMountains.setChecked(true);
+        } else {
+            mRadioButtonSeaside.setChecked(true);
+        }
+        mRatingBar.setRating(rating);
+        mSeekBarPrice.setProgress((int) price);
+    }
+
     public void btnSaveTripOnClick(View view) {
         if (isValidDestination() && isValidTripName() && isValidTripType()) {
             getValuesFromFields();
             DatabaseReference userReference = mDatabaseReference.child("USERS")
                     .child(mFirebaseAuth.getCurrentUser().getUid());
-            userReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    noTrips = (long) dataSnapshot.child("noTrips").getValue();
-                }
+            if(updateTrip) {
+                final DatabaseReference tripReference = userReference.child("trips").child("trip_" + position);
+                tripReference.child("name").setValue(name);
+                tripReference.child("destination").setValue(destination);
+                tripReference.child("price").setValue(price);
+                tripReference.child("rating").setValue(rating);
+                tripReference.child("startDate").setValue(startDate);
+                tripReference.child("endDate").setValue(endDate);
+                tripReference.child("type").setValue(type);
+            } else {
+                userReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        noTrips = dataSnapshot.child("noTrips").getValue(Long.class);
+                    }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                }
-            });
-            noTrips++;
+                    }
+                });
 
-            final DatabaseReference tripReference = userReference.child("trips").child("trip_" + noTrips);
+                final DatabaseReference tripReference = userReference.child("trips").child("trip_" + noTrips);
 
-            final StorageReference imgStorageReference = mFirebaseStorage.getReference().child("USERS")
-                    .child(mFirebaseAuth.getUid()).child("img");
+                final StorageReference imgStorageReference = mFirebaseStorage.getReference().child("USERS")
+                        .child(mFirebaseAuth.getCurrentUser().getUid()).child("img");
 
-            UploadTask uploadTask = imgStorageReference.putBytes(photo);
-            uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    imgStorageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                        @Override
-                        public void onSuccess(Uri uri) {
-                            tripReference.child("img").setValue(uri.toString());
-                        }
-                    });
-                }
-            });
-            userReference.child("noTrips").setValue(noTrips);
-            tripReference.child("name").setValue(name);
-            tripReference.child("destination").setValue(destination);
-            tripReference.child("price").setValue(price);
-            tripReference.child("rating").setValue(rating);
-            tripReference.child("startDate").setValue(startDate);
-            tripReference.child("endDate").setValue(endDate);
-            tripReference.child("type").setValue(type);
+                UploadTask uploadTask = imgStorageReference.putBytes(photo);
+                uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        imgStorageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                            @Override
+                            public void onSuccess(Uri uri) {
+                                tripReference.child("img").setValue(uri.toString());
+                            }
+                        });
+                    }
+                });
+                tripReference.child("name").setValue(name);
+                tripReference.child("destination").setValue(destination);
+                tripReference.child("price").setValue(price);
+                tripReference.child("rating").setValue(rating);
+                tripReference.child("startDate").setValue(startDate);
+                tripReference.child("endDate").setValue(endDate);
+                tripReference.child("type").setValue(type);
+                noTrips++;
+                userReference.child("noTrips").setValue(noTrips);
+            }
 
 
             Intent intent = new Intent(ManageTripActivity.this, MainActivity.class);
@@ -372,10 +413,6 @@ public class ManageTripActivity extends AppCompatActivity {
         DialogFragment newFragment = new DatePickerFragment();
         newFragment.show(getSupportFragmentManager(), getString(R.string.select_start_date));
         startDate = Calendar.getInstance().getTimeInMillis();
-
-//        startDate.set(((DatePickerFragment) newFragment).getSelectedYear(),
-//                ((DatePickerFragment) newFragment).getSelectedMonth(),
-//                ((DatePickerFragment) newFragment).getSelectedDay());
     }
 
 
@@ -383,9 +420,6 @@ public class ManageTripActivity extends AppCompatActivity {
         DialogFragment newFragment = new DatePickerFragment();
         newFragment.show(getSupportFragmentManager(), getString(R.string.select_end_date));
         endDate = Calendar.getInstance().getTimeInMillis();
-//        endDate.set(((DatePickerFragment) newFragment).getSelectedYear(),
-//                ((DatePickerFragment) newFragment).getSelectedMonth(),
-//                ((DatePickerFragment) newFragment).getSelectedDay());
     }
 
     private void displayMessage(Context context, String message) {

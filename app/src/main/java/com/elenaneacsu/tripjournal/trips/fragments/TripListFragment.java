@@ -20,6 +20,7 @@ import com.elenaneacsu.tripjournal.trips.adapters.RecyclerTouchListener;
 import com.elenaneacsu.tripjournal.trips.adapters.TripAdapter;
 import com.elenaneacsu.tripjournal.trips.adapters.TripClickListener;
 import com.elenaneacsu.tripjournal.trips.entities.Trip;
+import com.elenaneacsu.tripjournal.trips.entities.Trip.TripType;
 import com.elenaneacsu.tripjournal.utils.Constants;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -32,6 +33,8 @@ import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static android.app.Activity.RESULT_OK;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -86,6 +89,7 @@ public class TripListFragment extends Fragment {
             @Override
             public void onClick(View view, int position) {
                 //todo vizualizare FRD+FST
+
             }
 
             @Override
@@ -94,16 +98,14 @@ public class TripListFragment extends Fragment {
                 Intent intent = new Intent(getActivity(), ManageTripActivity.class);
                 intent.putExtra(Constants.TRIP_NAME, selectedTrip.getName());
                 intent.putExtra(Constants.TRIP_DESTINATION, selectedTrip.getDestination());
-                intent.putExtra(Constants.TRIP_TYPE, selectedTrip.getType());
+                intent.putExtra(Constants.TRIP_TYPE, selectedTrip.getType().toString());
                 intent.putExtra(Constants.TRIP_PRICE, selectedTrip.getPrice());
                 intent.putExtra(Constants.TRIP_RATING, selectedTrip.getRating());
                 intent.putExtra(Constants.TRIP_START_DATE, selectedTrip.getStartDate());
                 intent.putExtra(Constants.TRIP_END_DATE, selectedTrip.getEndDate());
-                intent.putExtra(Constants.FLAG, "update");
                 intent.putExtra(Constants.POSITION, position);
-                Log.d("oaie", "onLongClick: position " + position);
-                Log.d("oaie", "onLongClick: flag update");
-                startActivityForResult(intent, 0);
+                intent.putExtra(Constants.UPDATE, true);
+                startActivityForResult(intent, Constants.REQUEST_UPDATE);
             }
         }));
     }
@@ -122,7 +124,7 @@ public class TripListFragment extends Fragment {
                         Trip trip = new Trip();
                         trip.setName((String) tripDataSnapshot.child("name").getValue());
                         trip.setDestination((String) tripDataSnapshot.child("destination").getValue());
-                        trip.setType(Trip.TripType.valueOf((String) tripDataSnapshot.child("type").getValue()));
+                        trip.setType(TripType.valueOf((String) tripDataSnapshot.child("type").getValue()));
                         trip.setStartDate((Long) tripDataSnapshot.child("startDate").getValue());
                         trip.setEndDate((Long) tripDataSnapshot.child("endDate").getValue());
                         trip.setRating((Long) tripDataSnapshot.child("rating").getValue());
@@ -151,5 +153,13 @@ public class TripListFragment extends Fragment {
     public void onPause() {
         super.onPause();
         mUserReference.removeEventListener(mValueEventListener);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == Constants.REQUEST_UPDATE && resultCode == RESULT_OK) {
+            mTripList.clear();
+            getAllTrips();
+        }
     }
 }
