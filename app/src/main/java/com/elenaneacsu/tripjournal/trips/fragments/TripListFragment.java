@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import com.elenaneacsu.tripjournal.R;
 import com.elenaneacsu.tripjournal.trips.activities.ManageTripActivity;
+import com.elenaneacsu.tripjournal.trips.activities.TripDetailsActivity;
 import com.elenaneacsu.tripjournal.trips.adapters.RecyclerTouchListener;
 import com.elenaneacsu.tripjournal.trips.adapters.TripAdapter;
 import com.elenaneacsu.tripjournal.trips.adapters.TripClickListener;
@@ -34,6 +35,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static android.app.Activity.RESULT_OK;
+import static com.elenaneacsu.tripjournal.utils.Constants.POSITION;
+import static com.elenaneacsu.tripjournal.utils.Constants.REQUEST_UPDATE;
+import static com.elenaneacsu.tripjournal.utils.Constants.TRIP_IMAGE_URL;
+import static com.elenaneacsu.tripjournal.utils.Constants.UPDATE;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -89,7 +94,12 @@ public class TripListFragment extends Fragment {
             @Override
             public void onClick(View view, int position) {
                 //todo vizualizare FRD+FST
-
+                Trip selectedTrip = mTripList.get(position);
+                Intent intent = new Intent(getActivity(), TripDetailsActivity.class);
+                putExtraIntent(intent, selectedTrip);
+                intent.putExtra(POSITION, position);
+                intent.putExtra(TRIP_IMAGE_URL, selectedTrip.getImage());
+                startActivity(intent);
             }
 
             @Override
@@ -97,16 +107,10 @@ public class TripListFragment extends Fragment {
                 Trip selectedTrip = mTripList.get(position);
                 itemPostion = position;
                 Intent intent = new Intent(getActivity(), ManageTripActivity.class);
-                intent.putExtra(Constants.TRIP_NAME, selectedTrip.getName());
-                intent.putExtra(Constants.TRIP_DESTINATION, selectedTrip.getDestination());
-                intent.putExtra(Constants.TRIP_TYPE, selectedTrip.getType().toString());
-                intent.putExtra(Constants.TRIP_PRICE, selectedTrip.getPrice());
-                intent.putExtra(Constants.TRIP_RATING, selectedTrip.getRating());
-                intent.putExtra(Constants.TRIP_START_DATE, selectedTrip.getStartDate());
-                intent.putExtra(Constants.TRIP_END_DATE, selectedTrip.getEndDate());
-                intent.putExtra(Constants.POSITION, position);
-                intent.putExtra(Constants.UPDATE, true);
-                startActivityForResult(intent, Constants.REQUEST_UPDATE);
+                putExtraIntent(intent, selectedTrip);
+                intent.putExtra(POSITION, position);
+                intent.putExtra(UPDATE, true);
+                startActivityForResult(intent, REQUEST_UPDATE);
             }
 
             @Override
@@ -115,6 +119,16 @@ public class TripListFragment extends Fragment {
             }
         };
         mRecyclerViewTrips.addOnItemTouchListener(new RecyclerTouchListener(getActivity(), mRecyclerViewTrips, mTripClickListener));
+    }
+
+    private void putExtraIntent(Intent intent, Trip selectedTrip) {
+        intent.putExtra(Constants.TRIP_NAME, selectedTrip.getName());
+        intent.putExtra(Constants.TRIP_DESTINATION, selectedTrip.getDestination());
+        intent.putExtra(Constants.TRIP_TYPE, selectedTrip.getType().toString());
+        intent.putExtra(Constants.TRIP_PRICE, selectedTrip.getPrice());
+        intent.putExtra(Constants.TRIP_RATING, selectedTrip.getRating());
+        intent.putExtra(Constants.TRIP_START_DATE, selectedTrip.getStartDate());
+        intent.putExtra(Constants.TRIP_END_DATE, selectedTrip.getEndDate());
     }
 
     private void getAllTrips() {
@@ -165,7 +179,7 @@ public class TripListFragment extends Fragment {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode == Constants.REQUEST_UPDATE && resultCode == RESULT_OK) {
+        if(requestCode == REQUEST_UPDATE && resultCode == RESULT_OK) {
 //            mTripList.clear();
 //            getAllTrips();
             mTripAdapter.notifyItemChanged(itemPostion);

@@ -8,6 +8,7 @@ public class Constants {
     public static final String TRIP_RATING = "trip_rating";
     public static final String TRIP_START_DATE = "trip_start_date";
     public static final String TRIP_END_DATE = "trip_end_date";
+    public static final String TRIP_IMAGE_URL = "trip_image_url";
     public static final String TRIP_OBJECT = "trip_object";
     public static final String FLAG = "flag";
     public static final String POSITION = "position";

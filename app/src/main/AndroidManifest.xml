@@ -3,14 +3,16 @@
     package="com.elenaneacsu.tripjournal">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-feature android:name="android.hardware.camera"
+
+    <uses-feature
+        android:name="android.hardware.camera"
         android:required="true" />
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature android:name="android.hardware.camera.autofocus" />
 
+    <uses-feature android:name="android.hardware.camera.autofocus" />
 
     <application
         android:allowBackup="true"
@@ -26,15 +28,16 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths"></meta-data>
+                android:resource="@xml/file_paths" />
         </provider>
+
         <activity
             android:name=".trips.activities.ManageTripActivity"
             android:label="@string/manage_trip" />
         <activity
             android:name=".trips.activities.MainActivity"
             android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".trips.activities.LogInActivity"
             android:label="@string/login_manifest"
@@ -47,7 +50,8 @@
         </activity>
         <activity
             android:name=".trips.activities.SignUpActivity"
-            android:label="@string/signup_manifest">
+            android:label="@string/signup_manifest"></activity>
+        <activity android:name=".trips.activities.TripDetailsActivity">
         </activity>
     </application>
 
