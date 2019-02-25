@@ -4,6 +4,7 @@ import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.util.Log;
 import android.widget.DatePicker;
 import android.widget.Toast;
 
@@ -13,6 +14,7 @@ public class DatePickerFragment extends DialogFragment {
     private int selectedYear, selectedMonth, selectedDay;
 
     public int getSelectedYear() {
+        Log.d("onDateSet", "getSelectedYear: "+selectedYear);
         return selectedYear;
     }
 
@@ -38,12 +40,19 @@ public class DatePickerFragment extends DialogFragment {
             new DatePickerDialog.OnDateSetListener() {
                 public void onDateSet(DatePicker view, int year, int month, int day) {
                     selectedYear = view.getYear();
+                    Log.d("onDateSet", "onDateSet: year "+view.getYear());
                     //todo eroare
-                    selectedMonth = view.getMonth() + 1;
+                    selectedMonth = view.getMonth();
                     selectedDay = view.getDayOfMonth();
                     Toast.makeText(getActivity(), "The selected date is " + view.getYear() +
                             " / " + (view.getMonth() + 1) +
                             " / " + view.getDayOfMonth(), Toast.LENGTH_SHORT).show();
                 }
             };
+
+//    public long getTimeInMillis() {
+//        Calendar calendar = Calendar.getInstance();
+//        calendar.set(selectedYear, selectedMonth, selectedDay);
+//        return calendar.getTimeInMillis();
+//    }
 }

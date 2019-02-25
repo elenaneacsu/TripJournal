@@ -117,7 +117,6 @@ public class ManageTripActivity extends AppCompatActivity {
         mButtonSelectImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("hani", "onClick: hani");
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
                         requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, Constants.REQUEST_EXTERNAL);
@@ -346,7 +345,7 @@ public class ManageTripActivity extends AppCompatActivity {
                         final DatabaseReference tripReference = userReference.child("trips").child("trip_" + noTrips);
 
                         final StorageReference imgStorageReference = mFirebaseStorage.getReference().child("USERS")
-                                .child(mFirebaseAuth.getCurrentUser().getUid()).child("img");
+                                .child(mFirebaseAuth.getCurrentUser().getUid()).child("img_"+noTrips);
 
                         UploadTask uploadTask = imgStorageReference.putBytes(photo);
                         uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -416,14 +415,25 @@ public class ManageTripActivity extends AppCompatActivity {
     public void selectStartDate(View view) {
         DialogFragment newFragment = new DatePickerFragment();
         newFragment.show(getSupportFragmentManager(), getString(R.string.select_start_date));
-        startDate = Calendar.getInstance().getTimeInMillis();
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(((DatePickerFragment) newFragment).getSelectedYear(), ((DatePickerFragment) newFragment).getSelectedMonth(),
+                ((DatePickerFragment) newFragment).getSelectedDay());
+       // Log.d("startDate", "selectStartDate: day "+((DatePickerFragment) newFragment).getSelectedDay());
+
+       // startDate = ((DatePickerFragment)newFragment).getTimeInMillis();
+        startDate = calendar.getTimeInMillis();
+//        Log.d("startDate", "selectStartDate: "+startDate);
     }
 
 
     public void selectEndDate(View view) {
         DialogFragment newFragment = new DatePickerFragment();
         newFragment.show(getSupportFragmentManager(), getString(R.string.select_end_date));
-        endDate = Calendar.getInstance().getTimeInMillis();
+        Calendar calendar = Calendar.getInstance();
+        //calendar.setTimeInMillis(startDate);
+        calendar.set(((DatePickerFragment) newFragment).getSelectedYear(), ((DatePickerFragment) newFragment).getSelectedMonth(),
+                ((DatePickerFragment) newFragment).getSelectedDay());
+        endDate = calendar.getTimeInMillis();
     }
 
     private void displayMessage(Context context, String message) {
