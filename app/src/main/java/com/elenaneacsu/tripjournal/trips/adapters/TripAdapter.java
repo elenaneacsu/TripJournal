@@ -10,7 +10,6 @@ import android.widget.TextView;
 
 import com.elenaneacsu.tripjournal.R;
 import com.elenaneacsu.tripjournal.trips.entities.Trip;
-import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -18,9 +17,11 @@ import java.util.List;
 public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder> {
 
     private List<Trip> mTrips;
+    private TripClickListener mTripClickListener;
 
-    public TripAdapter(List<Trip> tripList) {
+    public TripAdapter(List<Trip> tripList, TripClickListener tripClickListener) {
         this.mTrips = tripList;
+        this.mTripClickListener = tripClickListener;
     }
 
     @NonNull
@@ -61,6 +62,13 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
             mTextViewTripDestination = itemView.findViewById(R.id.textview_tripdestination);
             mTextViewTripPrice = itemView.findViewById(R.id.textview_price);
             mTextViewTripRating = itemView.findViewById(R.id.textview_rating);
+
+            mTextViewTripPrice.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mTripClickListener.onBookmarkClick(v, getAdapterPosition());
+                }
+            });
         }
     }
 }

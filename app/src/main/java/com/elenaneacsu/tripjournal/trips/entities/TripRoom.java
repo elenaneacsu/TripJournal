@@ -2,6 +2,7 @@ package com.elenaneacsu.tripjournal.trips.entities;
 
 import java.util.Calendar;
 
+
 public class TripRoom {
     private String name;
     private String destination;

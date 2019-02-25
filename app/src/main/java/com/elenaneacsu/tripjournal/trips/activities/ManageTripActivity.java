@@ -32,6 +32,7 @@ import android.widget.Toast;
 import com.elenaneacsu.tripjournal.R;
 import com.elenaneacsu.tripjournal.trips.entities.Trip.TripType;
 import com.elenaneacsu.tripjournal.trips.fragments.DatePickerFragment;
+import com.elenaneacsu.tripjournal.trips.fragments.TripListFragment;
 import com.elenaneacsu.tripjournal.utils.Constants;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -319,7 +320,7 @@ public class ManageTripActivity extends AppCompatActivity {
     public void btnSaveTripOnClick(View view) {
         if (isValidDestination() && isValidTripName() && isValidTripType()) {
             getValuesFromFields();
-            DatabaseReference userReference = mDatabaseReference.child("USERS")
+            final DatabaseReference userReference = mDatabaseReference.child("USERS")
                     .child(mFirebaseAuth.getCurrentUser().getUid());
             if(updateTrip) {
                 final DatabaseReference tripReference = userReference.child("trips").child("trip_" + position);
@@ -330,11 +331,47 @@ public class ManageTripActivity extends AppCompatActivity {
                 tripReference.child("startDate").setValue(startDate);
                 tripReference.child("endDate").setValue(endDate);
                 tripReference.child("type").setValue(type);
+
+                Intent intent = new Intent(ManageTripActivity.this, TripListFragment.class);
+                setResult(Activity.RESULT_OK, intent);
+                finish();
+
             } else {
                 userReference.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         noTrips = dataSnapshot.child("noTrips").getValue(Long.class);
+                        noTrips++;
+
+                        final DatabaseReference tripReference = userReference.child("trips").child("trip_" + noTrips);
+
+                        final StorageReference imgStorageReference = mFirebaseStorage.getReference().child("USERS")
+                                .child(mFirebaseAuth.getCurrentUser().getUid()).child("img");
+
+                        UploadTask uploadTask = imgStorageReference.putBytes(photo);
+                        uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                            @Override
+                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                imgStorageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                    @Override
+                                    public void onSuccess(Uri uri) {
+                                        tripReference.child("img").setValue(uri.toString());
+                                    }
+                                });
+                            }
+                        });
+                        tripReference.child("name").setValue(name);
+                        tripReference.child("destination").setValue(destination);
+                        tripReference.child("price").setValue(price);
+                        tripReference.child("rating").setValue(rating);
+                        tripReference.child("startDate").setValue(startDate);
+                        tripReference.child("endDate").setValue(endDate);
+                        tripReference.child("type").setValue(type);
+                        userReference.child("noTrips").setValue(noTrips);
+
+                        Intent intent = new Intent(ManageTripActivity.this, MainActivity.class);
+                        setResult(Activity.RESULT_OK, intent);
+                        finish();
                     }
 
                     @Override
@@ -342,40 +379,7 @@ public class ManageTripActivity extends AppCompatActivity {
 
                     }
                 });
-
-                final DatabaseReference tripReference = userReference.child("trips").child("trip_" + noTrips);
-
-                final StorageReference imgStorageReference = mFirebaseStorage.getReference().child("USERS")
-                        .child(mFirebaseAuth.getCurrentUser().getUid()).child("img");
-
-                UploadTask uploadTask = imgStorageReference.putBytes(photo);
-                uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        imgStorageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                            @Override
-                            public void onSuccess(Uri uri) {
-                                tripReference.child("img").setValue(uri.toString());
-                            }
-                        });
-                    }
-                });
-                tripReference.child("name").setValue(name);
-                tripReference.child("destination").setValue(destination);
-                tripReference.child("price").setValue(price);
-                tripReference.child("rating").setValue(rating);
-                tripReference.child("startDate").setValue(startDate);
-                tripReference.child("endDate").setValue(endDate);
-                tripReference.child("type").setValue(type);
-                noTrips++;
-                userReference.child("noTrips").setValue(noTrips);
             }
-
-
-            Intent intent = new Intent(ManageTripActivity.this, MainActivity.class);
-            setResult(Activity.RESULT_OK, intent);
-            finish();
-
         }
     }
 

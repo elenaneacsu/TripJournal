@@ -8,7 +8,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,6 +52,8 @@ public class TripListFragment extends Fragment {
     private DatabaseReference mUserReference;
     private List<StorageReference> mStorageReferences;
 
+    private TripClickListener mTripClickListener;
+    private int itemPostion;
 
     public TripListFragment() {
         // Required empty public constructor
@@ -84,8 +85,7 @@ public class TripListFragment extends Fragment {
 
         getAllTrips();
 
-
-        mRecyclerViewTrips.addOnItemTouchListener(new RecyclerTouchListener(getActivity(), mRecyclerViewTrips, new TripClickListener() {
+        mTripClickListener = new TripClickListener() {
             @Override
             public void onClick(View view, int position) {
                 //todo vizualizare FRD+FST
@@ -95,6 +95,7 @@ public class TripListFragment extends Fragment {
             @Override
             public void onLongClick(View view, int position) {
                 Trip selectedTrip = mTripList.get(position);
+                itemPostion = position;
                 Intent intent = new Intent(getActivity(), ManageTripActivity.class);
                 intent.putExtra(Constants.TRIP_NAME, selectedTrip.getName());
                 intent.putExtra(Constants.TRIP_DESTINATION, selectedTrip.getDestination());
@@ -107,7 +108,13 @@ public class TripListFragment extends Fragment {
                 intent.putExtra(Constants.UPDATE, true);
                 startActivityForResult(intent, Constants.REQUEST_UPDATE);
             }
-        }));
+
+            @Override
+            public void onBookmarkClick(View view, int position) {
+
+            }
+        };
+        mRecyclerViewTrips.addOnItemTouchListener(new RecyclerTouchListener(getActivity(), mRecyclerViewTrips, mTripClickListener));
     }
 
     private void getAllTrips() {
@@ -122,6 +129,7 @@ public class TripListFragment extends Fragment {
                     DataSnapshot tripsDataSnapshot = dataSnapshot.child("trips");
                     for (DataSnapshot tripDataSnapshot : tripsDataSnapshot.getChildren()) {
                         Trip trip = new Trip();
+                        //trip.setId(tripDataSnapshot.getKey());
                         trip.setName((String) tripDataSnapshot.child("name").getValue());
                         trip.setDestination((String) tripDataSnapshot.child("destination").getValue());
                         trip.setType(TripType.valueOf((String) tripDataSnapshot.child("type").getValue()));
@@ -136,7 +144,7 @@ public class TripListFragment extends Fragment {
 
                 RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
                 mRecyclerViewTrips.setLayoutManager(layoutManager);
-                mTripAdapter = new TripAdapter(mTripList);
+                mTripAdapter = new TripAdapter(mTripList, mTripClickListener);
                 mRecyclerViewTrips.setAdapter(mTripAdapter);
                 mTripAdapter.notifyDataSetChanged();
             }
@@ -158,8 +166,9 @@ public class TripListFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == Constants.REQUEST_UPDATE && resultCode == RESULT_OK) {
-            mTripList.clear();
-            getAllTrips();
+//            mTripList.clear();
+//            getAllTrips();
+            mTripAdapter.notifyItemChanged(itemPostion);
         }
     }
 }
