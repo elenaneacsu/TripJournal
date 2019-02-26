@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -93,7 +94,6 @@ public class TripListFragment extends Fragment {
         mTripClickListener = new TripClickListener() {
             @Override
             public void onClick(View view, int position) {
-                //todo vizualizare FRD+FST
                 Trip selectedTrip = mTripList.get(position);
                 Intent intent = new Intent(getActivity(), TripDetailsActivity.class);
                 putExtraIntent(intent, selectedTrip);
@@ -179,10 +179,9 @@ public class TripListFragment extends Fragment {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode == REQUEST_UPDATE && resultCode == RESULT_OK) {
-//            mTripList.clear();
-//            getAllTrips();
-            mTripAdapter.notifyItemChanged(itemPostion);
+        if (requestCode == REQUEST_UPDATE && resultCode == RESULT_OK) {
+            mTripList.clear();
+            getAllTrips();
         }
     }
 }

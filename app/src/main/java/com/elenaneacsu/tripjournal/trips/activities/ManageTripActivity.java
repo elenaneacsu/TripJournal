@@ -2,6 +2,7 @@ package com.elenaneacsu.tripjournal.trips.activities;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -15,12 +16,14 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioButton;
@@ -53,9 +56,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
+import static com.elenaneacsu.tripjournal.utils.Constants.*;
 import static com.elenaneacsu.tripjournal.utils.Constants.CAPTURE_IMAGE_REQUEST;
 
-public class ManageTripActivity extends AppCompatActivity {
+public class ManageTripActivity extends FragmentActivity implements DatePickerFragment.OnDataPass {
 
     private EditText mEditTextTripName;
     private EditText mEditTextDestination;
@@ -91,6 +95,9 @@ public class ManageTripActivity extends AppCompatActivity {
     private long noTrips;
     private boolean updateTrip;
 
+//    private int fromYear, fromMonth, fromDay, toYear, toMonth, toDay;
+//    private DatePickerDialog.OnDateSetListener fromDateListener, toDateListener;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,7 +126,7 @@ public class ManageTripActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
-                        requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, Constants.REQUEST_EXTERNAL);
+                        requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_EXTERNAL);
                     } else {
                         pickImageFromGallery();
                     }
@@ -131,19 +138,22 @@ public class ManageTripActivity extends AppCompatActivity {
 
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
-            name = bundle.getString(Constants.TRIP_NAME);
-            destination = bundle.getString(Constants.TRIP_DESTINATION);
-            price = bundle.getLong(Constants.TRIP_PRICE);
-            rating = bundle.getLong(Constants.TRIP_RATING);
-            startDate = bundle.getLong(Constants.TRIP_START_DATE);
-            endDate = bundle.getLong(Constants.TRIP_END_DATE);
-            type = TripType.valueOf(bundle.getString(Constants.TRIP_TYPE));
-            updateTrip = bundle.getBoolean(Constants.UPDATE);
-            position = bundle.getInt(Constants.POSITION);
+            name = bundle.getString(TRIP_NAME);
+            destination = bundle.getString(TRIP_DESTINATION);
+            price = bundle.getLong(TRIP_PRICE);
+            rating = bundle.getLong(TRIP_RATING);
+            startDate = bundle.getLong(TRIP_START_DATE);
+            endDate = bundle.getLong(TRIP_END_DATE);
+            type = TripType.valueOf(bundle.getString(TRIP_TYPE));
+            updateTrip = bundle.getBoolean(UPDATE);
+            position = bundle.getInt(POSITION);
+            Log.d("onCreate", "onCreate: position "+position);
 
             setValuesFromBundle();
         }
+
     }
+
 
     private void initView() {
         mEditTextTripName = findViewById(R.id.edittext_tripname);
@@ -161,7 +171,7 @@ public class ManageTripActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        if (requestCode == Constants.REQUEST_CODE) {
+        if (requestCode == REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED
                     && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
                 captureImage();
@@ -169,7 +179,7 @@ public class ManageTripActivity extends AppCompatActivity {
                 displayMessage(this, getString(R.string.permission_denied));
             }
         }
-        if (requestCode == Constants.REQUEST_EXTERNAL) {
+        if (requestCode == REQUEST_EXTERNAL) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 pickImageFromGallery();
             } else {
@@ -181,7 +191,7 @@ public class ManageTripActivity extends AppCompatActivity {
 
     private void captureImage() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, Constants.REQUEST_CODE);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE);
         } else {
             Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
@@ -244,7 +254,7 @@ public class ManageTripActivity extends AppCompatActivity {
         File mediaStorageDir = new File(
                 Environment
                         .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                Constants.IMAGE_DIRECTORY_NAME);
+                IMAGE_DIRECTORY_NAME);
         // Create the storage directory if it does not exist
         if (!mediaStorageDir.exists()) {
             if (!mediaStorageDir.mkdirs()) {
@@ -265,18 +275,18 @@ public class ManageTripActivity extends AppCompatActivity {
     private void pickImageFromGallery() {
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
-        startActivityForResult(intent, Constants.SELECT_IMAGE_REQUEST);
+        startActivityForResult(intent, SELECT_IMAGE_REQUEST);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == Constants.CAPTURE_IMAGE_REQUEST && resultCode == RESULT_OK) {
+        if (requestCode == CAPTURE_IMAGE_REQUEST && resultCode == RESULT_OK) {
             Bitmap myBitmap = BitmapFactory.decodeFile(photoFile.getAbsolutePath());
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             myBitmap.compress(Bitmap.CompressFormat.JPEG, 0, outputStream);
             photo = outputStream.toByteArray();
             mImageViewSelectedImage.setImageBitmap(myBitmap);
-        } else if (requestCode == Constants.SELECT_IMAGE_REQUEST && resultCode == RESULT_OK) {
+        } else if (requestCode == SELECT_IMAGE_REQUEST && resultCode == RESULT_OK) {
             mImageViewSelectedImage.setImageURI(data.getData());
             Bitmap myBitmap = BitmapFactory.decodeFile(data.getData().toString());
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -321,8 +331,8 @@ public class ManageTripActivity extends AppCompatActivity {
             getValuesFromFields();
             final DatabaseReference userReference = mDatabaseReference.child("USERS")
                     .child(mFirebaseAuth.getCurrentUser().getUid());
-            if(updateTrip) {
-                final DatabaseReference tripReference = userReference.child("trips").child("trip_" + position);
+            if (updateTrip) {
+                final DatabaseReference tripReference = userReference.child("trips").child("trip_" + (position+1));
                 tripReference.child("name").setValue(name);
                 tripReference.child("destination").setValue(destination);
                 tripReference.child("price").setValue(price);
@@ -345,7 +355,7 @@ public class ManageTripActivity extends AppCompatActivity {
                         final DatabaseReference tripReference = userReference.child("trips").child("trip_" + noTrips);
 
                         final StorageReference imgStorageReference = mFirebaseStorage.getReference().child("USERS")
-                                .child(mFirebaseAuth.getCurrentUser().getUid()).child("img_"+noTrips);
+                                .child(mFirebaseAuth.getCurrentUser().getUid()).child("img_" + noTrips);
 
                         UploadTask uploadTask = imgStorageReference.putBytes(photo);
                         uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -369,8 +379,7 @@ public class ManageTripActivity extends AppCompatActivity {
                         userReference.child("noTrips").setValue(noTrips);
 
                         Intent intent = new Intent(ManageTripActivity.this, MainActivity.class);
-                        setResult(Activity.RESULT_OK, intent);
-                        finish();
+                        startActivity(intent);
                     }
 
                     @Override
@@ -415,28 +424,30 @@ public class ManageTripActivity extends AppCompatActivity {
     public void selectStartDate(View view) {
         DialogFragment newFragment = new DatePickerFragment();
         newFragment.show(getSupportFragmentManager(), getString(R.string.select_start_date));
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(((DatePickerFragment) newFragment).getSelectedYear(), ((DatePickerFragment) newFragment).getSelectedMonth(),
-                ((DatePickerFragment) newFragment).getSelectedDay());
-       // Log.d("startDate", "selectStartDate: day "+((DatePickerFragment) newFragment).getSelectedDay());
-
-       // startDate = ((DatePickerFragment)newFragment).getTimeInMillis();
-        startDate = calendar.getTimeInMillis();
-//        Log.d("startDate", "selectStartDate: "+startDate);
+//        Calendar calendar = Calendar.getInstance();
+//        calendar.set(((DatePickerFragment) newFragment).selectedYear, ((DatePickerFragment) newFragment).selectedMonth,
+//                ((DatePickerFragment) newFragment).selectedDay);
+//        Log.d("startDate", "selectStartDate: day "+((DatePickerFragment) newFragment).selectedDay);
+//
+//       // startDate = ((DatePickerFragment)newFragment).getTimeInMillis();
+//        startDate = calendar.getTimeInMillis();
+////        Log.d("startDate", "selectStartDate: "+startDate);
     }
 
 
     public void selectEndDate(View view) {
         DialogFragment newFragment = new DatePickerFragment();
         newFragment.show(getSupportFragmentManager(), getString(R.string.select_end_date));
-        Calendar calendar = Calendar.getInstance();
-        //calendar.setTimeInMillis(startDate);
-        calendar.set(((DatePickerFragment) newFragment).getSelectedYear(), ((DatePickerFragment) newFragment).getSelectedMonth(),
-                ((DatePickerFragment) newFragment).getSelectedDay());
-        endDate = calendar.getTimeInMillis();
     }
+
 
     private void displayMessage(Context context, String message) {
         Toast.makeText(context, message, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onDataPass(long data) {
+        startDate = data;
+        Log.d("onData", "onDataPass: "+startDate);
     }
 }

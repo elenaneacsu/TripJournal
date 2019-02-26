@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_home) {
             initFragment(new TripListFragment());
         } else if (id == R.id.nav_favourite) {
-            Toast.makeText(this, "hani", Toast.LENGTH_LONG).show();
+//            Toast.makeText(this, "hani", Toast.LENGTH_LONG).show();
         } else if (id == R.id.nav_info) {
 
         } else if (id == R.id.nav_contact) {
