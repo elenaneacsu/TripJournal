@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.util.Log;
+import android.view.View;
 import android.widget.DatePicker;
 import android.widget.Toast;
 
@@ -16,6 +17,7 @@ import java.util.Calendar;
 public class DatePickerFragment extends DialogFragment {
     public int year, month, day;
     OnDataPass mDataPass;
+    private String flag;
 //
 //    public int getSelectedYear() {
 //        Log.d("onDateSet", "getSelectedYear: "+selectedYear);
@@ -29,6 +31,16 @@ public class DatePickerFragment extends DialogFragment {
 //    public int getSelectedDay() {
 //        return selectedDay;
 //    }
+
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Bundle bundle = getArguments();
+        if(bundle!=null) {
+            flag = bundle.getString("TYPE_OF_DATE");
+        }
+    }
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -53,12 +65,12 @@ public class DatePickerFragment extends DialogFragment {
                             " / " + view.getDayOfMonth(), Toast.LENGTH_SHORT).show();
                     Calendar calendar = Calendar.getInstance();
                     calendar.set(view.getYear(), view.getMonth(), view.getDayOfMonth());
-                    mDataPass.onDataPass(calendar.getTimeInMillis());
+                    mDataPass.onDataPass(calendar.getTimeInMillis(), flag);
                 }
             };
 
     public interface OnDataPass {
-        void onDataPass(long data);
+        void onDataPass(long data, String flag);
     }
 
     @Override

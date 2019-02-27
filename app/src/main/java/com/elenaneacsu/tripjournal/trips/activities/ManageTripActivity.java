@@ -424,6 +424,9 @@ public class ManageTripActivity extends FragmentActivity implements DatePickerFr
     public void selectStartDate(View view) {
         DialogFragment newFragment = new DatePickerFragment();
         newFragment.show(getSupportFragmentManager(), getString(R.string.select_start_date));
+        Bundle bundle = new Bundle();
+        bundle.putString("TYPE_OF_DATE", "startDate");
+        newFragment.setArguments(bundle);
 //        Calendar calendar = Calendar.getInstance();
 //        calendar.set(((DatePickerFragment) newFragment).selectedYear, ((DatePickerFragment) newFragment).selectedMonth,
 //                ((DatePickerFragment) newFragment).selectedDay);
@@ -438,6 +441,9 @@ public class ManageTripActivity extends FragmentActivity implements DatePickerFr
     public void selectEndDate(View view) {
         DialogFragment newFragment = new DatePickerFragment();
         newFragment.show(getSupportFragmentManager(), getString(R.string.select_end_date));
+        Bundle bundle = new Bundle();
+        bundle.putString("TYPE_OF_DATE", "endDate");
+        newFragment.setArguments(bundle);
     }
 
 
@@ -446,8 +452,13 @@ public class ManageTripActivity extends FragmentActivity implements DatePickerFr
     }
 
     @Override
-    public void onDataPass(long data) {
-        startDate = data;
+    public void onDataPass(long data, String flag) {
+        if(flag.equalsIgnoreCase("startDate")) {
+            startDate = data;
+        } else {
+            endDate = data;
+        }
+
         Log.d("onData", "onDataPass: "+startDate);
     }
 }
